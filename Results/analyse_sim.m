@@ -162,7 +162,7 @@ meanCritFromMiddle = mean([group(igroup).type(trialtype, 1).critFromMiddle; grou
 group(igroup).critFromMiddleOutliers = meanCritFromMiddle > ( median(meanCritFromMiddle) + 2* iqr(meanCritFromMiddle) ) | meanCritFromMiddle < ( median(meanCritFromMiddle) - 2* iqr(meanCritFromMiddle) );
 group(igroup).critToMiddleOutliers = meanCritToMiddle > ( median(meanCritToMiddle) + 2* iqr(meanCritToMiddle) ) | meanCritToMiddle < ( median(meanCritToMiddle) - 2* iqr(meanCritToMiddle) );
 
-meanMisses{igroup} = mean([group(igroup).type(trialtype, 1).percentageMissed; group(igroup).type(trialtype, 2).percentageMissed; group(igroup).type(3, 1).percentageMissed; group(igroup).type(3, 2).percentageMissed], 1);
+meanMisses{igroup} = mean([group(igroup).type(trialtype, 1).percentageMissed; group(igroup).type(trialtype, 2).percentageMissed], 1); %group(igroup).type(3, 1).percentageMissed; group(igroup).type(3, 2).percentageMissed], 1);
 end
 
 for igroup = 1:2

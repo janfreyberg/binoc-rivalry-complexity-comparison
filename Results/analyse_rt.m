@@ -55,6 +55,15 @@ for subject = 1:files(igroup).number
             simCourse(delSim) = [];
             simSecs(delSim) = [];
             
+            % determine the length of each simulated stimulus
+            [~, simDurs] = parse_percepts( simSecs, [], 40 );
+            % Ignore events shorter than 150 ms
+            
+            delSim = simDurs < 0.5;
+            simCourse(delSim) = [];
+            simSecs(delSim) = [];
+            
+            
             % adjust the simCourse to match button presses
             if LRnow(trial) == 2
                 simCourse(simCourse==45) = 2;
@@ -127,7 +136,7 @@ for subject = 1:files(igroup).number
         group(igroup).type(trialtype, stimtype).missedEvents(subject) = missedEventsTotal;
         group(igroup).type(trialtype, stimtype).eventsTotal(subject) = eventsTotal;
         group(igroup).type(trialtype, stimtype).percentageMissed(subject) = missedEventsTotal/eventsTotal;
-        
+        disp(missedEventsTotal/eventsTotal);
         group(igroup).type(trialtype, stimtype).rtFromMiddle(subject) = mean(RTfromMiddleTotal);
         group(igroup).type(trialtype, stimtype).rtToMiddle(subject) = mean(RTtoMiddleTotal);
         
@@ -137,6 +146,7 @@ for subject = 1:files(igroup).number
     end
     
 end
+
 
 for stimtype = 1:2
 % find outliers in group!
