@@ -1,3 +1,8 @@
+missedEventDurs = [];
+allEventDurs = [];
+miss_indexEventDurs = [];
+type_indexEventDurs=[];
+partic_indexEventDurs = [];
 for igroup = 1:2;
 for subject = 1:files(igroup).number
     
@@ -59,7 +64,7 @@ for subject = 1:files(igroup).number
             [~, simDurs] = parse_percepts( simSecs, [], 40 );
             % Ignore events shorter than 150 ms
             
-            delSim = simDurs < 0.5;
+            delSim = simDurs < 0.75;
             simCourse(delSim) = [];
             simSecs(delSim) = [];
             
@@ -101,19 +106,34 @@ for subject = 1:files(igroup).number
             
             
             
-            for ievent = 2:events
+            for ievent = 2:events-1
                 respIndex = find(pressList(:, simCourse(ievent)) & pressSecs > simSecs(ievent), 1);
                 nextEvent = find(simCourse==simCourse(ievent) & simSecs > simSecs(ievent), 1);
                 
+                allEventDurs = [allEventDurs, simDurs(ievent)];
+                partic_indexEventDurs = [partic_indexEventDurs, igroup*100 + subject];
+                if simCourse(ievent) == 2
+                    type_indexEventDurs = [type_indexEventDurs, 2];
+                else
+                    type_indexEventDurs = [type_indexEventDurs, 1];
+                end
+                if isempty(respIndex) && simCourse(ievent) ~= 2
+                    missedEvent = missedEvent + 1;
+                    missedEventDurs = [missedEventDurs,simDurs(ievent)];
+                    miss_indexEventDurs = [miss_indexEventDurs, 1];
+                elseif ~isempty(nextEvent) && simCourse(ievent) ~= 2 && logical(pressSecs(respIndex) > simSecs(nextEvent))
+                    missedEvent = missedEvent + 1;
+                    missedEventDurs = [missedEventDurs,simDurs(ievent)];
+                    miss_indexEventDurs = [miss_indexEventDurs, 1];
+                else
+                    miss_indexEventDurs = [miss_indexEventDurs, 0];
+                end
                 
                 if isempty(respIndex)
-                    missedEvent = missedEvent + 1;
-                elseif pressSecs(respIndex) > simSecs(nextEvent)
-                    missedEvent = missedEvent + 1;
-                else                    
-                    if simCourse(ievent == 2)
+                elseif ~isempty(nextEvent) && logical(pressSecs(respIndex) > simSecs(nextEvent))
+                else
+                    if simCourse(ievent) == 2
                         RTtoMiddle = [RTtoMiddle, pressSecs(respIndex) - simSecs(ievent)];
-                        
                     else
                         RTfromMiddle = [RTfromMiddle, pressSecs(respIndex) - simSecs(ievent)];
                         if ievent>2 && simCourse(ievent) == simCourse(ievent-2)
@@ -126,7 +146,7 @@ for subject = 1:files(igroup).number
                 
             end
             
-            RTtoMiddleTotal = [RTtoMiddleTotal, RTtoMiddle];
+            RTtoMiddleTotal = [RTtoMiddleTotal, RTtoMiddle]; %#ok<*AGROW>
             RTfromMiddleTotal = [RTfromMiddleTotal, RTfromMiddle];
             missedEventsTotal = missedEventsTotal + missedEvent;
             eventsTotal = eventsTotal + events;
@@ -134,9 +154,8 @@ for subject = 1:files(igroup).number
         end
         
         group(igroup).type(trialtype, stimtype).missedEvents(subject) = missedEventsTotal;
-        group(igroup).type(trialtype, stimtype).eventsTotal(subject) = eventsTotal;
+        group(igroup).type(trialtype, stimtype).eventsTotal(subject) = eventsTotal; %#ok<*SAGROW>
         group(igroup).type(trialtype, stimtype).percentageMissed(subject) = missedEventsTotal/eventsTotal;
-        disp(missedEventsTotal/eventsTotal);
         group(igroup).type(trialtype, stimtype).rtFromMiddle(subject) = mean(RTfromMiddleTotal);
         group(igroup).type(trialtype, stimtype).rtToMiddle(subject) = mean(RTtoMiddleTotal);
         
@@ -160,6 +179,9 @@ group(igroup).type(trialtype, stimtype).percentageMissedOutliers = group(igroup)
 
 end
 meanMisses{igroup} = mean([group(igroup).type(trialtype, 1).percentageMissed; group(igroup).type(trialtype, 2).percentageMissed], 1);
+meanRTfromMiddle{igroup} = nanmean([group(igroup).type(trialtype, 1).rtFromMiddle; group(igroup).type(trialtype, 2).rtFromMiddle], 1);
+meanRTtoMiddle{igroup} = nanmean([group(igroup).type(trialtype, 1).rtToMiddle; group(igroup).type(trialtype, 2).rtToMiddle], 1);
+
 end
 
 

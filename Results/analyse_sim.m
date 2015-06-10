@@ -1,3 +1,8 @@
+missedEventDurs = [];
+allEventDurs = [];
+miss_indexEventDurs = [];
+type_indexEventDurs=[];
+partic_indexEventDurs = [];
 for igroup = 1:2;
 for subject = 1:files(igroup).number
     
@@ -66,6 +71,11 @@ for subject = 1:files(igroup).number
             simCourseShort(delShort) = [];
             simSecsShort(delShort) = [];
             
+            % determine the length of each simulated stimulus
+            [~, simDurs] = parse_percepts( simSecsShort, [], 40 );
+            % Ignore events shorter than 150 ms
+
+            
             transitions = size(pressList, 1);
             events = size(simCourseShort, 2);
             alldata(trial).pressList = pressList;
@@ -128,20 +138,30 @@ for subject = 1:files(igroup).number
                 end
             end
             
-            for ievent = 2:events
-                respIndex = find(pressList(:, simCourseShort(ievent)) & pressSecs > simSecsShort(ievent), 1);
-                nextEvent = find(simCourseShort==simCourseShort(ievent) & simSecsShort > simSecsShort(ievent), 1);
+            for ievent = 2:events-1
+                respIndex = find(pressList(:, simCourseShort(ievent)) & (pressSecs > (simSecsShort(ievent)-simDurs(ievent-1))), 1);
+                nextEvent = find(simCourseShort==simCourseShort(ievent) & (simSecsShort > (simSecsShort(ievent))), 1);
                 
-                
-                if isempty(respIndex)
+                allEventDurs = [allEventDurs, simDurs(ievent)]; %#ok<*AGROW>
+                partic_indexEventDurs = [partic_indexEventDurs, igroup*100 + subject];
+                if simCourseShort(ievent) == 2
+                    type_indexEventDurs = [type_indexEventDurs, 2];
+                else
+                    type_indexEventDurs = [type_indexEventDurs, 1];
+                end
+                if isempty(respIndex) %&& simCourseShort(ievent) ~= 2
                     missedEvent = missedEvent + 1;
-                elseif pressSecs(respIndex) > simSecsShort(nextEvent)
+                    miss_indexEventDurs = [miss_indexEventDurs, 1];
+                elseif ~isempty(nextEvent) && pressSecs(respIndex) > simSecsShort(nextEvent)
                     missedEvent = missedEvent + 1;
+                    miss_indexEventDurs = [miss_indexEventDurs, 1];
+                else
+                    miss_indexEventDurs = [miss_indexEventDurs, 0];
                 end
                 
             end
             missedEventsTotal = missedEventsTotal + missedEvent;
-            eventsTotal = eventsTotal + events;
+            eventsTotal = eventsTotal + events-2;
         end
         
         
