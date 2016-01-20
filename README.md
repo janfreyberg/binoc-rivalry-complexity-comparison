@@ -1,5 +1,5 @@
 # binoc-rivalry-complexity-comparison
-Exp to measure rivalry with simple and complex stimuli
+Exp. to measure rivalry with simple and complex stimuli
 
 The script runs a total of 36 trials:
 6 each of rivalry with gratings and pictures
